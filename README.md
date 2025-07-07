@@ -18,10 +18,7 @@ This project deploys a complete SUSE AI environment on a single, GPU-enabled AWS
 3.  **AWS CLI:** [Install and configure the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html). This is required for the destroy script to function correctly.
 4.  **SUSE Customer Center (SCC) Account:** An active SUSE account with entitlements for Rancher Prime and SUSE AI. You will need your SCC username, a token, and a product registration code.
 5.  **Cloudflare Account:** A Cloudflare account managing the domain you wish to use. You will need your Cloudflare API Token and the Zone ID for your domain.
-6.  **SSH Key Pair:** An SSH key pair to access the EC2 instance. If you don't have one, create it:
-    ```
-    ssh-keygen -t rsa -b 4096 -f ~/.ssh/suse-ai-key
-    ```
+6.  **SSH Key Pair:** An SSH key pair to access the EC2 instance. If you don't have one, create it on the EC2 web interface and download the keys.
 
 ## How to Use
 
