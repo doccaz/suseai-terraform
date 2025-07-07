@@ -1,0 +1,34 @@
+# terraform.tfvars.example
+
+# It is recommended to use environment variables for AWS credentials.
+# However, you can uncomment and set them here if you prefer.
+# aws_access_key = "YOUR_AWS_ACCESS_KEY"
+# aws_secret_key = "YOUR_AWS_SECRET_KEY"
+
+# SUSE Customer Center (SCC) credentials are required for installation.
+scc_username           = "YOUR_SCC_USERNAME"
+scc_token              = "YOUR_SCC_TOKEN"
+suse_registration_code = "YOUR_SUSE_REGISTRATION_CODE"
+
+# Cloudflare credentials are required for DNS management.
+cloudflare_api_token = "YOUR_CLOUDFLARE_API_TOKEN"
+cloudflare_zone_id   = "YOUR_CLOUDFLARE_ZONE_ID"
+
+aws_region = "us-east-1"
+
+# Example SLES 15 SP5 AMI for us-east-1.
+# Verify and find the latest one for your region in the AWS Marketplace.
+ami_id = "ami-0b616d38e4a9a016b"
+
+instance_type = "t3a.xlarge"
+
+# The size of the root disk in GiB.
+root_volume_size = 50
+
+# Path to your SSH keys
+public_key_path  = "~/.ssh/id_rsa.pub"
+private_key_path = "~/.ssh/id_rsa"
+
+# The hostname you want to use for Rancher (e.g., rancher.yourdomain.com)
+# This MUST be a domain managed in your Cloudflare account.
+rancher_hostname = "rancher.yourdomain.com"
