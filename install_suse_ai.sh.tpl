@@ -23,10 +23,10 @@ echo "Registering the system with SUSE Customer Center..."
 # Register the base system.
 SUSEConnect -r "${suse_registration_code}"
 
-echo "Installing native NVIDIA GPU driver binaries (G06)..."
+echo "Installing native NVIDIA GPU driver binaries (G06) and utilities..."
 zypper addrepo --refresh 'https://developer.download.nvidia.com/compute/cuda/repos/sles15/x86_64/cuda-sles15.repo'
 zypper --gpg-auto-import-keys refresh
-# Install only the necessary driver components (kernel module and compute libraries), not the full CUDA toolkit.
+# Install the necessary driver components and utilities.
 zypper install -y --auto-agree-with-licenses nvidia-compute-G06 nvidia-compute-utils-G06 curl jq
 
 # --- Install RKE2 for a single-node Kubernetes cluster ---
@@ -79,6 +79,16 @@ kubectl create namespace cattle-system
 kubectl create namespace cert-manager
 kubectl create namespace suse-ai
 kubectl create namespace gpu-operator
+
+# --- Install Local Path Provisioner ---
+echo "Installing local-path-provisioner from GitHub..."
+kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
+
+echo "Waiting for local-path-provisioner to be ready..."
+kubectl wait --for=condition=Available deployment/local-path-provisioner -n local-path-storage --timeout=300s
+
+echo "Enabling volume expansion for local-path storage class..."
+kubectl patch storageclass local-path -p '{"allowVolumeExpansion": true}'
 
 # --- Create Registry Secret for Kubernetes (for cert-manager and suse-ai) ---
 # This allows Kubernetes to pull images from the authenticated registry

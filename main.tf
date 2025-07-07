@@ -118,7 +118,7 @@ resource "cloudflare_record" "rancher_dns" {
   name            = var.rancher_hostname
   content         = aws_eip.suse_ai_eip.public_ip
   type            = "A"
-  ttl             = 300
+  ttl             = 1 # 1 is "automatic" TTL
   proxied         = false
   allow_overwrite = true # This will overwrite any existing record with the same name
 }
@@ -131,7 +131,7 @@ resource "cloudflare_record" "open_webui_dns" {
   name            = var.open_webui_hostname
   content         = aws_eip.suse_ai_eip.public_ip
   type            = "A"
-  ttl             = 300
+  ttl             = 1 # 1 is "automatic" TTL
   proxied         = false
   allow_overwrite = true # This will overwrite any existing record with the same name
 }
