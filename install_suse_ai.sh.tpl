@@ -74,6 +74,7 @@ helm registry login dp.apps.rancher.io/charts -u "${scc_username}" -p "${scc_tok
 # --- Add public Helm repositories ---
 echo "Adding Helm repositories..."
 helm repo add rancher-prime https://charts.rancher.com/server-charts/prime
+helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
 helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
 helm repo update
 
@@ -93,6 +94,14 @@ kubectl wait --for=condition=Available deployment/local-path-provisioner -n loca
 echo "Enabling volume expansion for local-path storage class..."
 kubectl patch storageclass local-path -p '{"allowVolumeExpansion": true}'
 
+echo "Setting local-path as the default storage class..."
+kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
+# --- Label Node as Worker ---
+echo "Labeling the node..."
+NODE_NAME=$(kubectl get nodes -o jsonpath='{.items[0].metadata.name}')
+kubectl label nodes $NODE_NAME node-role.kubernetes.io/worker=true --overwrite
+
 # --- Create Registry Secret for Kubernetes (for cert-manager and suse-ai) ---
 # This allows Kubernetes to pull images from the authenticated registry
 kubectl create secret docker-registry application-collection \
@@ -111,7 +120,6 @@ kubectl create secret docker-registry application-collection \
 echo "Configuring and installing NVIDIA GPU Operator..."
 
 # 1. Label the node to indicate it has a GPU
-NODE_NAME=$(kubectl get nodes -o jsonpath='{.items[0].metadata.name}')
 kubectl label nodes $NODE_NAME nvidia.com/gpu=present --overwrite
 
 # 2. Create the time-slicing configuration as a ConfigMap

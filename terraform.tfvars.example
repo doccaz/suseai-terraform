@@ -20,7 +20,8 @@ aws_region = "us-east-1"
 # Verify and find the latest one for your region in the AWS Marketplace.
 ami_id = "ami-0b616d38e4a9a016b"
 
-instance_type = "t3a.xlarge"
+# GPU-optimized instance type. You can change this to other g4dn sizes (e.g., g4dn.2xlarge).
+instance_type = "g4dn.xlarge"
 
 # The size of the root disk in GiB.
 root_volume_size = 50

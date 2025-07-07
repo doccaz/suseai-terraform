@@ -55,7 +55,7 @@ variable "ami_id" {
 variable "instance_type" {
   description = "The EC2 instance type."
   type        = string
-  default     = "t3a.xlarge" # SUSE AI requires a minimum of 4 vCPUs and 16GB RAM
+  default     = "g4dn.xlarge" # GPU-optimized instance type
 }
 
 variable "root_volume_size" {
