@@ -33,8 +33,9 @@ fi
 # Get the instance's public IP from Terraform output
 INSTANCE_IP=$(terraform output -raw suse_ai_public_ip)
 
-# Get the Rancher hostname from the .tfvars file
+# Get hostnames from the .tfvars file
 RANCHER_HOSTNAME=$(grep "rancher_hostname" "$TFVARS_FILE" | sed -E 's/.*= *//; s/"//g')
+OPEN_WEBUI_HOSTNAME=$(grep "open_webui_hostname" "$TFVARS_FILE" | sed -E 's/.*= *//; s/"//g')
 
 # Extract the private key path directly from the .tfvars file
 PRIVATE_KEY_PATH_RAW=$(grep "private_key_path" "$TFVARS_FILE" | sed -E 's/.*= *//; s/"//g')
@@ -49,6 +50,9 @@ fi
 
 if [ -n "$RANCHER_HOSTNAME" ]; then
     echo "Rancher will be available at: https://$RANCHER_HOSTNAME"
+fi
+if [ -n "$OPEN_WEBUI_HOSTNAME" ]; then
+    echo "Open WebUI will be available at: https://$OPEN_WEBUI_HOSTNAME"
 fi
 
 # Loop to wait for the SSH service to become available on the new instance
@@ -68,5 +72,8 @@ echo "Error: Could not connect to the instance via SSH after multiple attempts."
 echo "You can try connecting manually: ssh -i $EXPANDED_PRIVATE_KEY_PATH ec2-user@$INSTANCE_IP"
 if [ -n "$RANCHER_HOSTNAME" ]; then
     echo "Once the installation is complete, access Rancher at: https://$RANCHER_HOSTNAME"
+fi
+if [ -n "$OPEN_WEBUI_HOSTNAME" ]; then
+    echo "Once the installation is complete, access Open WebUI at: https://$OPEN_WEBUI_HOSTNAME"
 fi
 exit 1

@@ -29,6 +29,7 @@ root_volume_size = 50
 public_key_path  = "~/.ssh/id_rsa.pub"
 private_key_path = "~/.ssh/id_rsa"
 
-# The hostname you want to use for Rancher (e.g., rancher.yourdomain.com)
-# This MUST be a domain managed in your Cloudflare account.
-rancher_hostname = "rancher.yourdomain.com"
+# The hostnames you want to use.
+# These MUST be for a domain managed in your Cloudflare account.
+rancher_hostname    = "rancher.yourdomain.com"
+open_webui_hostname = "webui.yourdomain.com"

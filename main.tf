@@ -91,6 +91,7 @@ resource "aws_instance" "suse_ai_node" {
     scc_username            = var.scc_username,
     scc_token               = var.scc_token,
     rancher_hostname        = var.rancher_hostname,
+    open_webui_hostname     = var.open_webui_hostname,
     suse_registration_code  = var.suse_registration_code
   })
 
@@ -109,12 +110,25 @@ resource "aws_instance" "suse_ai_node" {
   }
 }
 
-# Create a DNS A record in Cloudflare
+# Create a DNS A record in Cloudflare for Rancher
 resource "cloudflare_record" "rancher_dns" {
   # Only create this record if a hostname is provided
   count           = var.rancher_hostname != "" ? 1 : 0
   zone_id         = var.cloudflare_zone_id
   name            = var.rancher_hostname
+  content         = aws_eip.suse_ai_eip.public_ip
+  type            = "A"
+  ttl             = 300
+  proxied         = false
+  allow_overwrite = true # This will overwrite any existing record with the same name
+}
+
+# Create a DNS A record in Cloudflare for Open WebUI
+resource "cloudflare_record" "open_webui_dns" {
+  # Only create this record if a hostname is provided
+  count           = var.open_webui_hostname != "" ? 1 : 0
+  zone_id         = var.cloudflare_zone_id
+  name            = var.open_webui_hostname
   content         = aws_eip.suse_ai_eip.public_ip
   type            = "A"
   ttl             = 300

@@ -78,3 +78,8 @@ variable "rancher_hostname" {
   description = "The fully qualified domain name (FQDN) for the Rancher server. Required for Cloudflare integration."
   type        = string
 }
+
+variable "open_webui_hostname" {
+  description = "The fully qualified domain name (FQDN) for the Open WebUI. Required for Cloudflare integration."
+  type        = string
+}

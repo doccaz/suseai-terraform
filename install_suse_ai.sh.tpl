@@ -8,16 +8,13 @@ if [ -z "${scc_username}" ] || [ -z "${scc_token}" ] || [ -z "${suse_registratio
   exit 1
 fi
 
-# --- Determine Rancher Hostname ---
-# Use the provided hostname if it's not empty, otherwise get it from EC2 metadata.
-if [ -n "${rancher_hostname}" ]; then
-  RANCHER_HOSTNAME="${rancher_hostname}"
-else
-  RANCHER_HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
+# --- Determine Hostnames ---
+if [ -z "${rancher_hostname}" ]; then
+  echo "Error: rancher_hostname must be set." >&2
+  exit 1
 fi
-
-if [ -z "$RANCHER_HOSTNAME" ]; then
-  echo "Error: Could not determine public hostname." >&2
+if [ -z "${open_webui_hostname}" ]; then
+  echo "Error: open_webui_hostname must be set." >&2
   exit 1
 fi
 
@@ -131,6 +128,7 @@ helm install gpu-operator nvidia/gpu-operator \
 echo "Waiting for NVIDIA GPU Operator to be ready..."
 kubectl wait --for=condition=Available deployment --all -n gpu-operator --timeout=600s
 
+
 # --- Install cert-manager from Application Collection ---
 # Required dependency for Rancher
 echo "Installing cert-manager..."
@@ -148,7 +146,7 @@ echo "Installing Rancher Prime..."
 helm install rancher rancher-prime/rancher \
   --namespace cattle-system \
   --create-namespace \
-  --set hostname=$RANCHER_HOSTNAME \
+  --set hostname=${rancher_hostname} \
   --set bootstrapPassword=admin
 
 echo "Waiting for Rancher to be fully deployed..."
@@ -164,8 +162,10 @@ helm install suse-ai-deployer oci://dp.apps.rancher.io/charts/suse-ai-deployer \
   --set ollama.gpu.enabled=true \
   --set ollama.nodeSelector."nvidia\.com/gpu"=present \
   --set ollama.resources.limits."nvidia\.com/gpu"=1 \
-  --set open-webui.ingress.host=$RANCHER_HOSTNAME
+  --set open-webui.ingress.host=${open_webui_hostname} \
+  --set open-webui.tls[0].hosts[0]=${open_webui_hostname}
 
 echo "SUSE AI deployment initiated. It may take several minutes for all components to become active."
-echo "Access Rancher at: https://$RANCHER_HOSTNAME"
+echo "Access Rancher at: https://${rancher_hostname}"
+echo "Access Open WebUI at: https://${open_webui_hostname}"
 echo "Bootstrap password is: admin"
