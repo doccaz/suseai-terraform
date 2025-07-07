@@ -27,7 +27,10 @@ echo "Installing native NVIDIA GPU driver binaries (G06) and utilities..."
 zypper addrepo --refresh 'https://developer.download.nvidia.com/compute/cuda/repos/sles15/x86_64/cuda-sles15.repo'
 zypper --gpg-auto-import-keys refresh
 # Install the necessary driver components and utilities.
-zypper install -y --auto-agree-with-licenses nvidia-compute-G06 nvidia-compute-utils-G06 curl jq
+zypper install -y --auto-agree-with-licenses nvidia-compute-G06 nvidia-compute-utils-G06 curl jq nvidia-container-toolkit-base
+
+echo "Creating CDI profile for NVIDIA..."
+nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml
 
 # --- Install RKE2 for a single-node Kubernetes cluster ---
 echo "Installing RKE2..."
