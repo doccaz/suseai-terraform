@@ -30,7 +30,7 @@ echo "Installing native NVIDIA GPU driver binaries (G06)..."
 zypper addrepo --refresh 'https://developer.download.nvidia.com/compute/cuda/repos/sles15/x86_64/cuda-sles15.repo'
 zypper --gpg-auto-import-keys refresh
 # Install only the necessary driver components (kernel module and compute libraries), not the full CUDA toolkit.
-zypper install -y --auto-agree-with-licenses nvidia-compute-G06 curl jq
+zypper install -y --auto-agree-with-licenses nvidia-compute-G06 nvidia-compute-utils-G06 curl jq
 
 # --- Install RKE2 for a single-node Kubernetes cluster ---
 echo "Installing RKE2..."
@@ -129,9 +129,7 @@ helm install gpu-operator nvidia/gpu-operator \
   --set devicePlugin.config.name=time-slicing-config
 
 echo "Waiting for NVIDIA GPU Operator to be ready..."
-sleep 60
 kubectl wait --for=condition=Available deployment --all -n gpu-operator --timeout=600s
-
 
 # --- Install cert-manager from Application Collection ---
 # Required dependency for Rancher
@@ -143,7 +141,6 @@ helm install cert-manager oci://dp.apps.rancher.io/charts/cert-manager \
   --set global.imagePullSecrets[0].name=application-collection
 
 echo "Waiting for cert-manager to be ready..."
-sleep 60
 kubectl wait --for=condition=Available deployment --all -n cert-manager --timeout=300s
 
 # --- Install Rancher Prime from Public Helm Repository ---
@@ -155,7 +152,6 @@ helm install rancher rancher-prime/rancher \
   --set bootstrapPassword=admin
 
 echo "Waiting for Rancher to be fully deployed..."
-sleep 120
 kubectl -n cattle-system wait --for=condition=Available deployment/rancher --timeout=600s
 
 # --- Install SUSE AI Deployer from Application Collection with GPU enabled ---
@@ -167,7 +163,8 @@ helm install suse-ai-deployer oci://dp.apps.rancher.io/charts/suse-ai-deployer \
   --set global.imagePullSecrets[0].name=application-collection \
   --set ollama.gpu.enabled=true \
   --set ollama.nodeSelector."nvidia\.com/gpu"=present \
-  --set ollama.resources.limits."nvidia\.com/gpu"=1
+  --set ollama.resources.limits."nvidia\.com/gpu"=1 \
+  --set open-webui.ingress.host=$RANCHER_HOSTNAME
 
 echo "SUSE AI deployment initiated. It may take several minutes for all components to become active."
 echo "Access Rancher at: https://$RANCHER_HOSTNAME"
