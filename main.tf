@@ -92,7 +92,8 @@ resource "aws_instance" "suse_ai_node" {
     scc_token               = var.scc_token,
     rancher_hostname        = var.rancher_hostname,
     open_webui_hostname     = var.open_webui_hostname,
-    suse_registration_code  = var.suse_registration_code
+    suse_registration_code  = var.suse_registration_code,
+    ollama_models           = var.ollama_models
   })
 
   tags = {

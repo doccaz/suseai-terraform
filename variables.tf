@@ -61,7 +61,7 @@ variable "instance_type" {
 variable "root_volume_size" {
   description = "The size of the root block device in GiB."
   type        = number
-  default     = 50
+  default     = 100
 }
 
 variable "public_key_path" {
@@ -82,4 +82,10 @@ variable "rancher_hostname" {
 variable "open_webui_hostname" {
   description = "The fully qualified domain name (FQDN) for the Open WebUI. Required for Cloudflare integration."
   type        = string
+}
+
+variable "ollama_models" {
+  description = "A comma-separated list of models for Ollama to pull on startup."
+  type        = string
+  default     = "llama3.2:3b,deepseek-r1:7b"
 }

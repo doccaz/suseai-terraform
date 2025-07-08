@@ -26,6 +26,7 @@ SUSEConnect -r "${suse_registration_code}"
 echo "Installing native NVIDIA GPU driver binaries (G06) and utilities..."
 zypper addrepo --refresh 'https://developer.download.nvidia.com/compute/cuda/repos/sles15/x86_64/cuda-sles15.repo'
 zypper --gpg-auto-import-keys refresh
+
 # Install the necessary driver components and utilities.
 zypper install -y --auto-agree-with-licenses nvidia-compute-G06 nvidia-compute-utils-G06 curl jq nvidia-container-toolkit-base
 
@@ -175,7 +176,7 @@ kubectl -n cattle-system wait --for=condition=Available deployment/rancher --tim
 
 # --- Install SUSE AI Deployer from Application Collection with GPU enabled ---
 # This chart will install NeuVector Prime, Longhorn, and Grafana as dependencies
-echo "Installing SUSE AI Deployer with GPU enabled..."
+echo "Installing SUSE AI Deployer with GPU enabled and additional models..."
 helm install suse-ai-deployer oci://dp.apps.rancher.io/charts/suse-ai-deployer \
   --namespace suse-ai \
   --create-namespace \
@@ -184,7 +185,8 @@ helm install suse-ai-deployer oci://dp.apps.rancher.io/charts/suse-ai-deployer \
   --set ollama.nodeSelector."nvidia\.com/gpu"=present \
   --set ollama.resources.limits."nvidia\.com/gpu"=1 \
   --set open-webui.ingress.host=${open_webui_hostname} \
-  --set open-webui.tls[0].hosts[0]=${open_webui_hostname}
+  --set open-webui.tls[0].hosts[0]=${open_webui_hostname} \
+  --set ollama.models="{${ollama_models}}"
 
 echo "SUSE AI deployment initiated. It may take several minutes for all components to become active."
 echo "Access Rancher at: https://${rancher_hostname}"

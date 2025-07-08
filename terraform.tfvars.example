@@ -24,7 +24,7 @@ ami_id = "ami-0b616d38e4a9a016b"
 instance_type = "g4dn.xlarge"
 
 # The size of the root disk in GiB.
-root_volume_size = 50
+root_volume_size = 100
 
 # Path to your SSH keys
 public_key_path  = "~/.ssh/id_rsa.pub"
@@ -33,4 +33,7 @@ private_key_path = "~/.ssh/id_rsa"
 # The hostnames you want to use.
 # These MUST be for a domain managed in your Cloudflare account.
 rancher_hostname    = "rancher.yourdomain.com"
-open_webui_hostname = "webui.yourdomain.com"
+open_webui_hostname = "openwebui.yourdomain.com"
+
+# A comma-separated list of models for Ollama to pull on startup.
+ollama_models = "deepseek-coder-v2:16b,llama3"
