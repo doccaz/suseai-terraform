@@ -145,7 +145,15 @@ helm install gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator \
   --set driver.enabled=false \
   --set toolkit.enabled=true \
-  --set devicePlugin.config.name=time-slicing-config
+  --set devicePlugin.config.name=time-slicing-config \
+  --set toolkit.env[0].name=CONTAINERD_CONFIG \
+  --set toolkit.env[0].value=/var/lib/rancher/rke2/agent/etc/containerd/config.toml.tmpl \
+  --set toolkit.env[1].name=CONTAINERD_SOCKET \
+  --set toolkit.env[1].value=/run/k3s/containerd/containerd.sock \
+  --set toolkit.env[2].name=CONTAINERD_RUNTIME_CLASS \
+  --set toolkit.env[2].value=nvidia \
+  --set toolkit.env[3].name=CONTAINERD_SET_AS_DEFAULT \
+  --set-string toolkit.env[3].value=true
 
 echo "Waiting for NVIDIA GPU Operator to be ready..."
 kubectl wait --for=condition=Available deployment --all -n gpu-operator --timeout=600s
