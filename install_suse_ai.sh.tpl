@@ -18,6 +18,8 @@ if [ -z "${open_webui_hostname}" ]; then
   exit 1
 fi
 
+hostnamectl set-hostname rancher01
+
 # --- System Registration and Prerequisite Installation ---
 echo "Registering the system with SUSE Customer Center..."
 # Register the base system.
@@ -50,7 +52,6 @@ while [ ! -f /etc/rancher/rke2/rke2.yaml ]; do
   sleep 10
   COUNTER=$((COUNTER + 10))
 done
-echo "RKE2 is ready."
 
 # --- Configure kubectl ---
 # Add RKE2 binaries to the path for this script's session
@@ -79,6 +80,13 @@ helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
 helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
 helm repo update
 
+# --- Label Node as Worker ---
+echo "Labeling the node..."
+NODE_NAME=$(kubectl get nodes -o jsonpath='{.items[0].metadata.name}')
+kubectl label nodes $NODE_NAME node-role.kubernetes.io/worker=true --overwrite
+kubectl wait --for=condition=Ready node/$NODE_NAME
+echo "RKE2 is ready."
+
 # --- Create Namespaces ---
 kubectl create namespace cattle-system
 kubectl create namespace cert-manager
@@ -89,8 +97,6 @@ kubectl create namespace gpu-operator
 echo "Installing local-path-provisioner from GitHub..."
 kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
 
-echo "Waiting for local-path-provisioner to be ready..."
-kubectl wait --for=condition=Available deployment/local-path-provisioner -n local-path-storage --timeout=300s
 
 echo "Enabling volume expansion for local-path storage class..."
 kubectl patch storageclass local-path -p '{"allowVolumeExpansion": true}'
@@ -98,10 +104,8 @@ kubectl patch storageclass local-path -p '{"allowVolumeExpansion": true}'
 echo "Setting local-path as the default storage class..."
 kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
-# --- Label Node as Worker ---
-echo "Labeling the node..."
-NODE_NAME=$(kubectl get nodes -o jsonpath='{.items[0].metadata.name}')
-kubectl label nodes $NODE_NAME node-role.kubernetes.io/worker=true --overwrite
+echo "Waiting for local-path-provisioner to be ready..."
+kubectl wait --for=condition=Available deployment/local-path-provisioner -n local-path-storage --timeout=300s
 
 # --- Create Registry Secret for Kubernetes (for cert-manager and suse-ai) ---
 # This allows Kubernetes to pull images from the authenticated registry
@@ -156,8 +160,10 @@ helm install gpu-operator nvidia/gpu-operator \
   --set-string toolkit.env[3].value=true
 
 echo "Waiting for NVIDIA GPU Operator to be ready..."
+kubectl wait --for=condition=Ready pods --all -n gpu-operator --timeout=300s
 kubectl wait --for=condition=Available deployment --all -n gpu-operator --timeout=600s
-
+kubectl wait --for=condition=Available daemonset/gpu-feature-discovery -n gpu-operator --timeout=300s
+kubectl wait --for=condition=Available daemonset/nvidia-operator-validator -n gpu-operator --timeout=300s
 
 # --- Install cert-manager from Application Collection ---
 # Required dependency for Rancher
@@ -169,7 +175,7 @@ helm install cert-manager oci://dp.apps.rancher.io/charts/cert-manager \
   --set global.imagePullSecrets[0].name=application-collection
 
 echo "Waiting for cert-manager to be ready..."
-kubectl wait --for=condition=Available deployment --all -n cert-manager --timeout=300s
+kubectl wait --for=condition=Available deployment --all -n cert-manager --timeout=600s
 
 # --- Install Rancher Prime from Public Helm Repository ---
 echo "Installing Rancher Prime..."
