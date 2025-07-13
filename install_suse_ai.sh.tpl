@@ -121,6 +121,18 @@ kubectl create secret docker-registry application-collection \
   --docker-password="${scc_token}" \
   -n suse-ai
 
+# --- Install cert-manager from Application Collection ---
+# Required dependency for Rancher
+echo "Installing cert-manager..."
+helm install cert-manager oci://dp.apps.rancher.io/charts/cert-manager \
+  --namespace cert-manager \
+  --create-namespace \
+  --set crds.enabled=true \
+  --set global.imagePullSecrets[0].name=application-collection
+
+echo "Waiting for cert-manager to be ready..."
+kubectl wait --for=condition=Available deployment --all -n cert-manager --timeout=600s
+
 # --- NVIDIA GPU Operator Installation and Configuration ---
 echo "Configuring and installing NVIDIA GPU Operator..."
 
@@ -163,19 +175,6 @@ echo "Waiting for NVIDIA GPU Operator to be ready..."
 kubectl wait --for=condition=Ready pods --all -n gpu-operator --timeout=300s
 kubectl wait --for=condition=Available deployment --all -n gpu-operator --timeout=600s
 kubectl wait --for=condition=Available daemonset/gpu-feature-discovery -n gpu-operator --timeout=300s
-kubectl wait --for=condition=Available daemonset/nvidia-operator-validator -n gpu-operator --timeout=300s
-
-# --- Install cert-manager from Application Collection ---
-# Required dependency for Rancher
-echo "Installing cert-manager..."
-helm install cert-manager oci://dp.apps.rancher.io/charts/cert-manager \
-  --namespace cert-manager \
-  --create-namespace \
-  --set crds.enabled=true \
-  --set global.imagePullSecrets[0].name=application-collection
-
-echo "Waiting for cert-manager to be ready..."
-kubectl wait --for=condition=Available deployment --all -n cert-manager --timeout=600s
 
 # --- Install Rancher Prime from Public Helm Repository ---
 echo "Installing Rancher Prime..."
